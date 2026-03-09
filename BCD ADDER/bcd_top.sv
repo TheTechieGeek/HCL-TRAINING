@@ -1,31 +1,38 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 07.03.2026 15:22:22
-// Design Name: 
-// Module Name: pg_block
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
-module pg_block(
-    input a,
-    input b,
-    output p,
-    output g
+`include "BCD_digit.sv"
+
+module bcd_adder #(
+    parameter N = 12      // Must be multiple of 4
+)(
+    input  logic [N-1:0] a,
+    input  logic [N-1:0] b,
+    input  logic         cin,
+    output logic [N-1:0] sum,
+    output logic         cout
 );
 
-assign p = a ^ b;
-assign g = a & b;
+    localparam DIGITS = N/4;
+
+    logic [DIGITS:0] carry;
+
+    assign carry[0] = cin;
+
+    genvar i;
+
+    generate
+        for (i = 0; i < DIGITS; i++) begin : BCD_STAGE
+
+            BCD_digit digit_adder (
+                .a   (a[i*4 +: 4]),
+                .b   (b[i*4 +: 4]),
+                .cin (carry[i]),
+                .sum (sum[i*4 +: 4]),
+                .cout(carry[i+1])
+            );
+
+        end
+    endgenerate
+
+    assign cout = carry[DIGITS];
 
 endmodule
